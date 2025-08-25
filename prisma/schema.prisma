@@ -1,0 +1,94 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+// Mudando tipo onde o banco ja tem dados com tipos anteriores
+// Crie a migração com o nome da ação, sem executar tag no final (--create-only)
+// Injete o Query direto na migração (ex: 20250710083710_change_type_status_tasks_to_int)
+// execute: npx prisma migrate dev
+
+// PRODUÇÃO:
+// npx prisma migrate deploy
+// npx prisma generate
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Clients {
+  id           Int       @id @default(autoincrement())
+  status       Boolean   @default(true)
+  full_name    String
+  display_name String
+  email        String    @unique
+  password     String
+  cart         Cart? // Um cliente tem apenas um carrinho ativo
+  // rg, cpf, address, method payment..
+  created_at   DateTime  @default(now())
+  updated_at   DateTime? @updatedAt
+
+  @@map("clients") // Nome da tabela no banco
+}
+
+model Category {
+  id       Int        @id @default(autoincrement())
+  status   Boolean    @default(true)
+  name     String     @unique // Nome da categoria deve ser único
+  products Products[]
+
+  @@map("categories")
+}
+
+model Products {
+  id          Int        @id @default(autoincrement())
+  status      Boolean    @default(true) // caso a categoria seja deletada, category_id é setado como null
+  category    Category?  @relation(fields: [category_id], references: [id], onDelete: SetNull)
+  category_id Int?
+  photo       String?
+  name        String
+  price       Decimal    @db.Decimal(10, 2) // Usando Decimal para valores monetários
+  promotion   Decimal?   @db.Decimal(10, 2) // Preço promocional
+  description String?    @db.Text // Texto longo para descrição
+  stock       Int? // null é estoque ilimitado
+  cart_items  CartItem[] // Itens do carrinho
+  created_at  DateTime   @default(now())
+  updated_at  DateTime?  @updatedAt
+
+  @@index([category_id]) // Índice para consultas por categoria
+  @@index([status]) // Índice para consultas por status
+  @@map("products")
+}
+
+model Cart {
+  id         Int        @id @default(autoincrement())
+  client     Clients    @relation(fields: [client_id], references: [id], onDelete: Cascade)
+  client_id  Int        @unique // Um cliente tem apenas um carrinho
+  items      CartItem[] // Itens do carrinho
+  created_at DateTime   @default(now())
+  updated_at DateTime?  @updatedAt
+
+  @@map("carts")
+}
+
+model CartItem {
+  id         Int      @id @default(autoincrement())
+  cart       Cart     @relation(fields: [cart_id], references: [id], onDelete: Cascade)
+  cart_id    Int
+  product    Products @relation(fields: [product_id], references: [id])
+  product_id Int
+  quantity   Int      @default(1)
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  // Evita duplicação: um produto só pode estar uma vez no mesmo carrinho
+  @@unique([cart_id, product_id])
+  @@map("cart_items")
+}
