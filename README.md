@@ -36,13 +36,13 @@ $ npm install
 ```bash
 # TESTES pasta "_backup"
 
-# BANCO DE DADOS: stefanini-shop.backup
-# POSTMAN: STEFANINI-SHOP.postman_collection.json
+# BANCO DE DADOS: solid-shop.backup
+# POSTMAN: SOLID-SHOP.postman_collection.json
 
 # ou
 
-# criar banco de dados postgresql com nome: 'stefanini-shop'
-# criar banco de dados postgresql para TDD com nome: 'stefanini-shop-test'
+# criar banco de dados postgresql com nome: 'solid-shop'
+# criar banco de dados postgresql para TDD com nome: 'solid-shop-test'
 
 # run:
 $ npx prisma db create
